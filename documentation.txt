@@ -1,0 +1,15 @@
+Documentation:
+
+Group members: Julia Razzino, Connor Brezenski, Michaela Kovalsky
+
+Ideas/Guidance:
+- !! LINK CHATGPT CHATS HERE !!
+- https://chatgpt.com/share/672240bf-796c-800d-8f12-723f73621a2d
+
+Big 5 Trait Research:
+- https://www.verywellmind.com/music-and-personality-2795424#:~:text=Big%20Five%20Personality%20Traits%20and%20Musical%20Preferences,-A%202018%20study&text=The%20research%20also%20found%20that,have%20less%20diverse%20musical%20tastes.
+- https://research.atspotify.com/2020/12/just-the-way-you-are-music-listening-and-personality/#:~:text=Those%20who%20scored%20high%20in,their%20social%20network%27s%20music%20suggestions.
+
+Syntax resources:
+- Spotify API: https://developer.spotify.com/documentation/web-api
+- Python Notebook Markdowns: https://www.ibm.com/docs/en/watson-studio-local/1.2.3?topic=notebooks-markdown-jupyter-cheatsheet
