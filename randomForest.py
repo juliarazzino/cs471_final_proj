@@ -6,17 +6,6 @@ import os
 from sklearn.preprocessing import MultiLabelBinarizer
 
 # -----------------------------------------------
-# Section 1: Save Enriched Streaming History
-# -----------------------------------------------
-
-# Replace with your desired output file path
-output_csv_filename = 'data/your_streaming_history_enriched.csv'
-
-# Save the enriched DataFrame to CSV
-df_enriched.to_csv(output_csv_filename, index=False)
-print(f"Enriched data saved to {output_csv_filename}")
-
-# -----------------------------------------------
 # Section 2: Load and Combine User Data
 # -----------------------------------------------
 
@@ -251,10 +240,31 @@ additional_agg_functions = {
 # Aggregate additional features per user
 user_agg = df.groupby('username').agg(additional_agg_functions).reset_index()
 
+# Flatten MultiIndex columns in user_agg
+def flatten_columns(columns):
+    flattened_columns = []
+    for col in columns:
+        if isinstance(col, tuple):
+            # Handle the 'username' column
+            if col[1] == '':
+                flattened_columns.append(col[0])
+            else:
+                flattened_columns.append('_'.join(col).strip())
+        else:
+            flattened_columns.append(col)
+    return flattened_columns
+
+user_agg.columns = flatten_columns(user_agg.columns.values)
+
 # Ensure 'username' is present in all DataFrames
 assert 'username' in user_agg.columns, "'username' missing in user_agg"
 assert 'username' in genre_dummies.columns, "'username' missing in genre_dummies"
 assert 'username' in user_keys.columns, "'username' missing in user_keys"
+
+# Convert 'username' to string in all DataFrames
+user_agg['username'] = user_agg['username'].astype(str)
+genre_dummies['username'] = genre_dummies['username'].astype(str)
+user_keys['username'] = user_keys['username'].astype(str)
 
 # Merge all DataFrames on 'username'
 user_data = pd.merge(user_agg, genre_dummies, on='username', how='left')
