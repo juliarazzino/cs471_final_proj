@@ -327,7 +327,7 @@ for trait in target_columns:
     y_trait = y[trait]
     
     # Initialize the model
-    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+    rf_model = RandomForestRegressor(n_estimators=1000, random_state=42)
     
     # Use cross_val_predict to get predictions for all data points
     y_pred = cross_val_predict(rf_model, X, y_trait, cv=kf)
