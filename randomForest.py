@@ -4,6 +4,12 @@ import numpy as np
 import glob
 import os
 from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.metrics import mean_squared_error
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+
+
 
 # -----------------------------------------------
 # Section 2: Load and Combine User Data
@@ -269,3 +275,87 @@ user_keys['username'] = user_keys['username'].astype(str)
 # Merge all DataFrames on 'username'
 user_data = pd.merge(user_agg, genre_dummies, on='username', how='left')
 user_data = pd.merge(user_data, user_keys, on='username', how='left')
+
+# print(f"Number of users in dataset: {user_data['username'].nunique()}")
+print(f"Total records: {len(user_data)}")
+# print(user_data.head())
+
+# Load the personality traits data
+user_personality = pd.read_csv('data/results.csv')
+
+# Ensure 'username' is in the columns
+if 'username' not in user_personality.columns:
+    user_personality.rename(columns={'name': 'username'}, inplace=True)
+
+user_personality['username'] = user_personality['username'].astype(str)
+
+# Merge user data with personality traits
+user_data = pd.merge(user_data, user_personality, on='username', how='inner')
+
+# Define target columns
+target_columns = ['Openness', 'Conscientiousness', 'Extraversion', 'Agreeableness', 'Neuroticism']
+
+# Ensure these columns exist in user_data
+missing_traits = [col for col in target_columns if col not in user_data.columns]
+if missing_traits:
+    print(f"Warning: The following personality trait columns are missing: {missing_traits}")
+
+# Features are all columns except 'username' and target columns
+feature_columns = [col for col in user_data.columns if col not in ['username'] + target_columns]
+
+# Prepare feature matrix X and target matrix y
+X = user_data[feature_columns]
+y = user_data[target_columns]
+
+# Handle any remaining missing values
+X.fillna(0, inplace=True)
+
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import cross_val_predict, KFold
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Initialize cross-validator
+kf = KFold(n_splits=3, shuffle=True, random_state=42)
+print(f"Number of folds: {kf.get_n_splits()}")
+
+# Iterate over all personality traits
+for trait in target_columns:
+    print(f"\nTraining model to predict '{trait}'")
+    y_trait = y[trait]
+    
+    # Initialize the model
+    rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+    
+    # Use cross_val_predict to get predictions for all data points
+    y_pred = cross_val_predict(rf_model, X, y_trait, cv=kf)
+    
+    # Evaluate the model
+    mse = mean_squared_error(y_trait, y_pred)
+    r2 = r2_score(y_trait, y_pred)
+    
+    print(f"Mean Squared Error for '{trait}': {mse}")
+    print(f"R² Score for '{trait}': {r2}")
+    
+    # Save the predictions
+    user_data[f'Predicted_{trait}'] = y_pred
+    
+    # Visualize Actual vs. Predicted
+    plt.figure(figsize=(6, 6))
+    plt.scatter(y_trait, y_pred, color='blue')
+    plt.plot([y_trait.min(), y_trait.max()], [y_trait.min(), y_trait.max()], 'r--')
+    plt.xlabel(f'Actual {trait}')
+    plt.ylabel(f'Predicted {trait}')
+    plt.title(f'Actual vs. Predicted {trait}')
+    plt.grid(True)
+    plt.show()
+    
+    # Check for missing predictions
+    num_missing = pd.isnull(y_pred).sum()
+    print(f"Number of missing predictions for '{trait}': {num_missing}")
+    
+    # Verify predictions
+    print(f"Predictions for '{trait}': {y_pred}")
+    print(f"Actual values for '{trait}': {y_trait.values}")
